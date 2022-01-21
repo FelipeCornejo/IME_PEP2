@@ -11,6 +11,7 @@ library(dplyr)
 library (tidyverse)
 library (ggpubr)
 library (ez)
+library (DescTools)
 
 # Se obtienen los datos del archivo csv, windows separa por ";".
 data <- read.csv2(choose.files(), sep=";")
@@ -18,6 +19,8 @@ data <- read.csv2(choose.files(), sep=";")
 alfa <- 0.01
 
 filtro_w <- data %>% filter(division == "Cavetrooper")
+
+set.seed(7782) # Se setea una seed para la obtencion de muestras. ultimos 4 digitos de rut de felipe cornejo.
 
 # Luego de obtener los datos filtrados por la division Cavetrooper se procede a desarrollar la hipotesis.
 
@@ -27,41 +30,36 @@ filtro_w <- data %>% filter(division == "Cavetrooper")
 # H0 : No existen diferencias significativas entre el promedio de las evaluaciones.
 # HA : Existe por lo menos un promedio que difiere de los demás.
 
-instructor <- data[["eval_instructor"]]
-comandante <- data[["eval_comandante"]]
-capitan <- data[["eval_capitan"]]
-general <- data[["eval_general"]]
+#Se realizar� con una muestra de 40 Cavetroopers los siguientes test.
+muestra <- filtro_w[sample(nrow(filtro_w), 40),]
 
-datos2 <- data %>% select(id,eval_instructor, eval_capitan,eval_comandante,eval_general)
-data2 <- data %>% pivot_longer(c("eval_instructor","eval_capitan","eval_comandante","eval_general"),
+muestra2 <- muestra %>% pivot_longer(c("eval_instructor","eval_capitan","eval_comandante","eval_general"),
                                names_to = "Evaluador",
                                values_to = "Puntaje")
-data2[["ID"]] <-  factor (1: nrow ( data2 ) )
+muestra2[["ID"]] <-  factor (1: nrow ( muestra2 ) )
 
 
 
 # Comprobación de normalidad utilizando Shapiro Test.
 
 
-shapiro1 <- shapiro.test(data[["eval_instructor"]])
+shapiro1 <- shapiro.test(muestra[["eval_instructor"]])
 print(shapiro1)
-# p-value = 0.0141
-shapiro2 <- shapiro.test(data[["eval_capitan"]])
+# p-value = 0.4172
+shapiro2 <- shapiro.test(muestra[["eval_capitan"]])
 print(shapiro2)
-# p-value = 0.0487
-shapiro3 <- shapiro.test(data[["eval_comandante"]])
+# p-value = 0.3488
+shapiro3 <- shapiro.test(muestra[["eval_comandante"]])
 print(shapiro3)
-# p-value = 0.01863
-shapiro4 <- shapiro.test(data[["eval_general"]])
+# p-value =0.03497
+shapiro4 <- shapiro.test(muestra[["eval_general"]])
 print(shapiro4)
-# p-value = 0.008721
+# p-value = 0.1232
 
-g <- ggqqplot(data, x ="eval_general")
+g <- ggqqplot(muestra2, x ="eval_general")
 print(g)
 
-#Las primeras 3 evaluaciones testeadas se obtiene un p-valor > alfa, lo cual se puede afirmar que para ellas, con un 99% de confianza, que siguen una distribución normal
-#La evaluación del general, se escapa del valor alfa, pero no demasiado más. Evaluando su gráfico Q-Q se puede ver que los datos atípicos no se alejan tanto de la curva de normalidad.
-# Por ende se seguirá, manteniendo en cuenta solo este detalle.
+#Las evaluaciones testeadas se obtiene un p-valor > alfa, lo cual se puede afirmar que para ellas, con un 99% de confianza, que siguen una distribución normal
 
 # Se verifican las condiciones para utilizar ANOVA:
 
@@ -78,22 +76,17 @@ print(g)
 #   Además, al realizar el procedimiento de ANOVA con ezANOVA(), esta incluye
 #   dicha prueba.
 
-# Prueba de homocedasticidad de Levene.
-leveneTest()
 
-varInst =  var(instructor)
-varCom =  var(comandante)
-varCap = var(capitan)
-varGen = var(general)
-# H0: Las varianzas de las muestras son iguales.
-# HA: Existe por lo menos una varianza que difiere de las demás.
-
-pruebaANOV <- ezANOVA ( data = data2 , dv = Puntaje , between = Evaluador,
+pruebaANOV <- ezANOVA ( data = muestra2 , dv = Puntaje , between = Evaluador,
                        wid = ID , return_aov = TRUE )
 print(pruebaANOV)
 
-g2 <- ezPlot(data = data2, dv= Puntaje, wid = ID, between = Evaluador, y_lab = "Evaluacion de Evaluador",
+g2 <- ezPlot(data = muestra2, dv= Puntaje, wid = ID, between = Evaluador, y_lab = "Evaluacion de Evaluador",
              x = Evaluador)
 print(g2)
 
-#Se puede apreciar que el test arroja un p valor equivalente a 
+# Se puede apreciar que el test arroja un p valor equivalente a 3.072127e-17
+# Lo cual significa que se rechaza la hipotesis nula a favor de la alternativa con una seguridad de 99%.
+
+# Por ende se procede a realizar un testeo post-hoc para que vader pueda castigar a el evaluador en cuesti�n.
+
