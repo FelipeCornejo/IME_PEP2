@@ -89,4 +89,18 @@ print(g2)
 # Lo cual significa que se rechaza la hipotesis nula a favor de la alternativa con una seguridad de 99%.
 
 # Por ende se procede a realizar un testeo post-hoc para que vader pueda castigar a el evaluador en cuestión.
+# Por lo tanto se realizará una prueba de comparación SCHEFFÉ ya que tiene la ventaja de obtener el resultado distinto.
+anova <- aov( Puntaje ~ Evaluador , data = muestra2 )
+
+posth <- TukeyHSD(anova, "Evaluador", ordered = TRUE, conf.level = 1 - alfa)
+print(posth)
+
+# Se puede apreciar que la prueba pos-hoc, junto con el gráfico otorgado por ezPlot da a mostrar que la variable independiente
+# el cual se aleja totalmente de las otras medias es la evaluacion del instructor.
+
+
+## PREGUNTA 2
+
+# Se realiza la lectura de los datos.
+data <- read.csv2(choose.files(), sep=";")
 
