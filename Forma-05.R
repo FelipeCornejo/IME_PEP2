@@ -104,3 +104,11 @@ print(posth)
 # Se realiza la lectura de los datos.
 data <- read.csv2(choose.files(), sep=";")
 
+set.seed(1028)
+#Se muestrea a 40 chicos
+n <- nrow (data)
+n_entrenamiento <- floor (0.8*n)
+muestra <- sample.int (n = n, size = n_entrenamiento , replace = FALSE )
+
+entrenamiento <- data[muestra, ]
+prueba <- data[-muestra, ]
