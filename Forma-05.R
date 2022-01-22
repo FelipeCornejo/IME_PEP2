@@ -88,15 +88,16 @@ print(g2)
 # Se puede apreciar que el test arroja un p valor equivalente a 3.072127e-17
 # Lo cual significa que se rechaza la hipotesis nula a favor de la alternativa con una seguridad de 99%.
 
-# Por ende se procede a realizar un testeo post-hoc para que vader pueda castigar a el evaluador en cuesti�n.
-# Por lo tanto se realizar� una prueba de comparaci�n SCHEFF� ya que tiene la ventaja de obtener el resultado distinto.
+# Por ende se procede a realizar un testeo post-hoc para que vader pueda castigar a el evaluador en cuestión.
+# Por lo tanto se realizará una prueba de comparación SCHEFFÉ ya que tiene la ventaja de obtener el resultado distinto.
 anova <- aov( Puntaje ~ Evaluador , data = muestra2 )
 
 posth <- TukeyHSD(anova, "Evaluador", ordered = TRUE, conf.level = 1 - alfa)
 print(posth)
 
-# Se puede apreciar que la prueba pos-hoc, junto con el gr�fico otorgado por ezPlot da a mostrar que la variable independiente
+# Se puede apreciar que la prueba pos-hoc el cual otorga que el instructor tiene las mayores diferencias con todos los otros evaluadores, junto con el gráfico otorgado por ezPlot da a mostrar que la variable independiente
 # el cual se aleja totalmente de las otras medias es la evaluacion del instructor.
+
 
 
 ## PREGUNTA 2
@@ -112,3 +113,76 @@ muestra <- sample.int (n = n, size = n_entrenamiento , replace = FALSE )
 
 entrenamiento <- data[muestra, ]
 prueba <- data[-muestra, ]
+
+#Se parte escogiendo 3 variables predictoras para predecir S o N (el tipo de soldado, clon o no)
+#Las cuales seran:
+#Fuerza
+#Resistencia
+#Agilidad
+
+
+shapiro1 <- shapiro.test(entrenamiento[["fuerza"]])
+print(shapiro1)
+# p-value = 6.996e-16
+shapiro2 <- shapiro.test(entrenamiento[["resistencia"]])
+print(shapiro2)
+# p-value = 5.662e-16
+shapiro3 <- shapiro.test(entrenamiento[["agilidad"]])
+print(shapiro3)
+# p-value = 5.656e-16
+
+#Se puede ver que no son cercanas a la normal y se nos acabo el tiempo de la prueba T-T
+
+
+
+
+# Pregunta 3
+# Proponga un ejemplo novedoso (no mencionado en clase ni que aparezca en las lecturas dadas) en donde un
+# estudio o experimento, relacionado con el sentir de los santiaguinos ante el aumento de la violencia de la delincuencia,
+# necesite utilizar una prueba de Kruskal-Wallis debido a problemas con la escala de la variable dependiente en estudio.
+# Indiqué cuáles serían las variables involucradas en su ejemplo (con sus respectivos niveles) y las hipótesis nula y
+# alternativa a contrastar.
+
+# Dada esta crítica situación que viven los santiaguinos hoy en día, es que se ha dado una fenómeno sumamente particular
+# que es la instalación de la necesidad de invertir en defensa personal.
+# Es por esto que se busca medir entre 4 sujetos A, B , C y D si estos invierten una cantidad similar de dinero en 
+# artículos de defensa personal.
+
+# H0:  Todos los individuos invierten cantidades similares de dinero en su seguridad personal.
+# HA: Al menos uno de los individuos presenta una inversión diferente a al menos otro individuo.
+
+
+# Para esto se construye una matriz de datos, donde se le asigna el valor en pesos chilenos invertidos en cada mes del año 2021.
+
+A <- c(15000, 18000, 14000, 16000, 15000, 12000, 15000, 14000, 16000, 12000, 18000, 15000)
+B <- c(20000, 23000, 19000, 21000, 20000, 17000, 20000, 19000, 21000, 17000, 23000, 20000)
+C <- c(17000, 13000, 19000, 12000, 17000, 18000, 14000, 11000, 10000, 11000, 15000, 14000)
+D <- c(25000, 28000, 24000, 26000, 25000, 22000, 25000, 24000, 26000, 22000, 28000, 25000)
+Inversion <- c(A, B, C, D)
+
+
+Individuo <- c(rep("A", lenght(A)),
+                rep("B", lenght(B)),
+                rep("C", lenght(C)),
+                rep("D", lenght(D)))
+
+
+Individuo <- factor(Individuo)
+
+datos <- data.frame(Inversion, Individuo)
+
+
+# Estableciendo nivel de significación
+alda <- 0.01
+
+prueba  <- kruskal.test(Inversion ~ Individuo, data=datos)
+print(prueba)
+
+# En caso de presentar diferencias significativas se efectua procedimiento post-hoc
+if(prueba$p.value < alfa){
+    post_hoc <- pairwise.wilcox.test(datos$Inversion,
+                                    datos$Individuo,
+                                    p.adjust.method = "holm",
+                                    paired = FALSE)
+    print(post_hoc)
+}
